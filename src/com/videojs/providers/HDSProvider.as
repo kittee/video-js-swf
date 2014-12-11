@@ -523,7 +523,7 @@ import org.osmf.utils.TimeUtil;
             if ( url.streamName.search(/@/) != -1 ) {
                 _isLive = true;
             }
-           
+            Console.log("playing", _src.f4m);
             _resource = new StreamingURLResource(_src.f4m ,streamType);
             _mediaElement = _mediaFactory.createMediaElement(_resource );
 
@@ -679,14 +679,9 @@ import org.osmf.utils.TimeUtil;
             var autoLabel:String = "Auto";
             _qualityLevels.push({label:autoLabel,pos:-1});
             if(_mediaPlayer.canPlay && _mediaPlayer.isDynamicStream) {
-	
-                Console.log("proxy element",(_mediaElement is ProxyElement));
-                var dsResource:DynamicStreamingResource = (_mediaElement is ProxyElement)
-                    ? (_mediaElement as F4MElement).proxiedElement.resource as DynamicStreamingResource
-                    : _mediaElement.resource as DynamicStreamingResource;
-
-                for (var dsIndex:int = 0; dsIndex < dsResource.streamItems.length; dsIndex++) {  
-                    _qualityLevels.push({label:level2label(dsResource.streamItems[dsIndex]),pos:dsIndex});
+                var dsResource:DynamicStreamingResource = (_mediaElement as F4MElement).proxiedElement.resource as DynamicStreamingResource
+                for (var i:int = 0; i < dsResource.streamItems.length; i++) {  
+                    _qualityLevels.push({label:level2label(dsResource.streamItems[i]),pos:i});
                 }
 
             }

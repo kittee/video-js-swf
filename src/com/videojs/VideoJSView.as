@@ -186,7 +186,6 @@ package com.videojs{
             _uiBackground.graphics.drawRect(0, 0, _model.stageRect.width, _model.stageRect.height);
             _uiBackground.graphics.endFill();
         }
-
         
         private function onPosterSet(e:VideoJSEvent):void{
             loadPoster();

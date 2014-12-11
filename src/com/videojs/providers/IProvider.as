@@ -210,5 +210,6 @@ package com.videojs.providers{
         function get autoLevelEnabled():Boolean;
 
         function get levels():Array;
+
     }
 }
