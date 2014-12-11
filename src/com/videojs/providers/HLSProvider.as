@@ -22,6 +22,7 @@ package com.videojs.providers{
   import org.mangui.hls.constant.HLSSeekStates;
   import org.mangui.hls.utils.Log;
   import org.mangui.hls.utils.Params2Settings;
+  import org.mangui.hls.model.Level;
 
   public class HLSProvider implements IProvider {
 
@@ -186,11 +187,7 @@ package com.videojs.providers{
             var width:Number = _hls.levels[levelIndex].width;
             var height:Number = _hls.levels[levelIndex].height;
             Log.info("HLSProvider: new level index " + levelIndex + " bitrate=" + bitrate + ", width=" + width + ", height=" + height);
-<<<<<<< HEAD
             _model.broadcastEventExternally(ExternalEventName.ON_LEVEL_SWITCH);
-=======
-            _model.broadcastEventExternally(ExternalEventName.ON_LEVEL_SWITCH, {levelIndex: levelIndex, bitrate: bitrate, width: width, height: height});
->>>>>>> upstream_hls/master
         }
 
         private function _onFrame(event:Event):void

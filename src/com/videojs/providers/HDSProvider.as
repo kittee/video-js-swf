@@ -56,7 +56,6 @@ import org.osmf.net.StreamType;
 import org.osmf.net.StreamingURLResource;
 import org.osmf.net.DynamicStreamingResource;
 import org.osmf.net.DynamicStreamingItem;
-import org.osmf.player.chrome.utils.MediaElementUtils;
 import org.osmf.traits.DisplayObjectTrait;
 import org.osmf.traits.MediaTraitType;
 import org.osmf.traits.TimeTrait;

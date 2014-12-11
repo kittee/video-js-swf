@@ -532,10 +532,6 @@ package com.videojs.providers{
                     _loadStartTimestamp = getTimer();
                     _throughputTimer.reset();
                     _throughputTimer.start();
-<<<<<<< HEAD
-=======
-
->>>>>>> upstream_hls/master
                     if(!_pauseOnStart || _model.autoplay){
                         _ns.resume();
                         _model.broadcastEventExternally(ExternalEventName.ON_RESUME);
