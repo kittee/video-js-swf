@@ -6,8 +6,16 @@ http/node_modules
 node_modules
 dist/*
 build
+<<<<<<< HEAD
 .project
 *.orig
 
 sandbox/*
 !sandbox/*.example
+=======
+
+*.orig
+
+sandbox/*
+!sandbox/*.example
+>>>>>>> upstream_hls/master

@@ -394,9 +394,11 @@ package com.videojs.providers{
         public function get numberOfLevels():int{
             return 1;
         }
+
         public function get level():int{
             return 0;
         }
+
         public function get levels():Array {
             return null;
         }

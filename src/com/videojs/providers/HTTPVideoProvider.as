@@ -417,9 +417,11 @@ package com.videojs.providers{
         public function get numberOfLevels():int{
             return 1;
         }
+
         public function get level():int{
             return 0;
         }
+
         public function get levels():Array {
             return null;
         }
@@ -530,6 +532,10 @@ package com.videojs.providers{
                     _loadStartTimestamp = getTimer();
                     _throughputTimer.reset();
                     _throughputTimer.start();
+<<<<<<< HEAD
+=======
+
+>>>>>>> upstream_hls/master
                     if(!_pauseOnStart || _model.autoplay){
                         _ns.resume();
                         _model.broadcastEventExternally(ExternalEventName.ON_RESUME);

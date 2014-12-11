@@ -223,7 +223,7 @@ package com.videojs{
                 _currentPlaybackType = PlaybackType.HDS;
             }
             else{
-                _currentPlaybackType = PlaybackType.HTTP;
+            _currentPlaybackType = PlaybackType.HTTP;
             }
             broadcastEventExternally(ExternalEventName.ON_SRC_CHANGE, _src);
             initProvider();
@@ -674,7 +674,7 @@ package com.videojs{
             }
         }
 
-        private function initProvider():void {
+        private function initProvider():void{
             if(_provider){
                 _provider.die();
                 _provider = null;
