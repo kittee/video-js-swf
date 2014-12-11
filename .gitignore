@@ -6,7 +6,7 @@ http/node_modules
 node_modules
 dist/*
 build
-
+.project
 *.orig
 
 sandbox/*

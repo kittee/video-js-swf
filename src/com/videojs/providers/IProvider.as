@@ -1,5 +1,6 @@
 package com.videojs.providers{
     
+    import flash.display.Sprite;
     import flash.media.Video;
     import flash.utils.ByteArray;
     
@@ -174,11 +175,41 @@ package com.videojs.providers{
          * with an external Video instance without exposing it.
          */
         function attachVideo(pVideo:Video):void;
+
+        /**
+         * For providers that employ an instance of Sprite, this method is used to connect that MediaElement
+         * with an external Video instance without exposing it.
+         */
+        function attachSprite(pSprite:Sprite):void;
         
         /**
          * Called when the provider is about to be disposed of.
          */
         function die():void;
         
+        /**
+         * Should return the number of stream levels that this content has.
+         */
+        function get numberOfLevels():int;
+
+        /**
+         * Should return the currently used stream level.
+         */
+        function get level():int;
+
+        /**
+         * Select the stream level.
+         * If -1 is specified, it means auto selection.
+         * If a level is specified (0-based index), that level is used and auto selection is disabled.
+         */
+        function set level(pLevel:int):void;
+
+        /**
+          * Should return whether auto level selection is currently enabled or not.
+          */
+        function get autoLevelEnabled():Boolean;
+
+        function get levels():Array;
+
     }
 }

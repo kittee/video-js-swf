@@ -7,6 +7,8 @@ package com.videojs{
     import flash.display.Bitmap;
     import flash.display.Loader;
     import flash.display.Sprite;
+    import flash.display.StageAlign;
+    import flash.display.StageScaleMode;
     import flash.events.Event;
     import flash.events.IOErrorEvent;
     import flash.events.SecurityErrorEvent;
@@ -15,13 +17,16 @@ package com.videojs{
     import flash.media.Video;
     import flash.net.URLRequest;
     import flash.system.LoaderContext;
-    
+
+    import com.videojs.utils.Console;
+
     public class VideoJSView extends Sprite{
         
         private var _uiVideo:Video;
         private var _uiPosterContainer:Sprite;
-            private var _uiPosterImage:Loader;
+        private var _uiPosterImage:Loader;
         private var _uiBackground:Sprite;
+        private var _uiSpriteVideo:Sprite;
         
         private var _model:VideoJSModel;
         
@@ -30,7 +35,6 @@ package com.videojs{
             _model = VideoJSModel.getInstance();
             _model.addEventListener(VideoJSEvent.POSTER_SET, onPosterSet);
             _model.addEventListener(VideoJSEvent.BACKGROUND_COLOR_SET, onBackgroundColorSet);
-            _model.addEventListener(VideoJSEvent.STAGE_RESIZE, onStageResize);
             _model.addEventListener(VideoPlaybackEvent.ON_STREAM_START, onStreamStart);
             _model.addEventListener(VideoPlaybackEvent.ON_META_DATA, onMetaData);
             _model.addEventListener(VideoPlaybackEvent.ON_VIDEO_DIMENSION_UPDATE, onDimensionUpdate);
@@ -43,21 +47,23 @@ package com.videojs{
             addChild(_uiBackground);
             
             _uiPosterContainer = new Sprite();
-            
-                _uiPosterImage = new Loader();
-                _uiPosterImage.visible = false;
-                _uiPosterContainer.addChild(_uiPosterImage);
-            
+            _uiPosterImage = new Loader();
+            _uiPosterImage.visible = false;
+            _uiPosterContainer.addChild(_uiPosterImage);
             addChild(_uiPosterContainer);
-            
+
             _uiVideo = new Video();
             _uiVideo.width = _model.stageRect.width;
             _uiVideo.height = _model.stageRect.height;
             _uiVideo.smoothing = true;
             addChild(_uiVideo);
-            
+
+            // no need of extra events to resize/update sprite. All is controled by MediaContainer in HDS class
+            _uiSpriteVideo = new Sprite();
+            addChild(_uiSpriteVideo);
+
             _model.videoReference = _uiVideo;
-            
+            _model.spriteReference = _uiSpriteVideo;
         }
         
         /**
@@ -180,16 +186,7 @@ package com.videojs{
             _uiBackground.graphics.drawRect(0, 0, _model.stageRect.width, _model.stageRect.height);
             _uiBackground.graphics.endFill();
         }
-        
-        private function onStageResize(e:VideoJSEvent):void{
-            
-            _uiBackground.graphics.clear();
-            _uiBackground.graphics.beginFill(_model.backgroundColor, 1);
-            _uiBackground.graphics.drawRect(0, 0, _model.stageRect.width, _model.stageRect.height);
-            _uiBackground.graphics.endFill();
-            sizePoster();
-            sizeVideoObject();
-        }
+
         
         private function onPosterSet(e:VideoJSEvent):void{
             loadPoster();

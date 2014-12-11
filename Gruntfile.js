@@ -13,13 +13,13 @@ module.exports = function (grunt) {
         // http://livedocs.adobe.com/flex/3/html/help.html?content=compilers_16.html
         metadata: {
           // `-title "Adobe Flex Application"`
-          title: 'VideoJS SWF',
+          title: 'VideoJS SWF by Dacast',
           // `-description "http://www.adobe.com/flex"`
-          description: 'http://www.videojs.com',
+          description: 'http://www.dacast.com',
           // `-publisher "The Publisher"`
-          publisher: 'Brightcove, Inc.',
+          publisher: 'Dacast LLC.',
           // `-creator "The Author"`
-          creator: 'Brightcove, Inc.',
+          creator: 'Dacast, LLC.',
           // `-language=EN`
           // `-language+=klingon`
           language: 'EN',
@@ -53,7 +53,7 @@ module.exports = function (grunt) {
 
         // http://livedocs.adobe.com/flex/3/html/help.html?content=compilers_19.html
         // `-library-path+=libraryPath1 -library-path+=libraryPath2`
-        libraries: ['libs/*.*'],
+        libraries: ['libs/'],
         // http://livedocs.adobe.com/flex/3/html/help.html?content=compilers_14.html
         // http://livedocs.adobe.com/flex/3/html/help.html?content=compilers_17.html
         // http://livedocs.adobe.com/flex/3/html/help.html?content=compilers_20.html
@@ -141,11 +141,9 @@ module.exports = function (grunt) {
       'git-merge-master': { command: 'git merge master' },
       'git-checkout-stable': { command: 'git checkout stable' },
       'git-checkout-master': { command: 'git checkout master' },
-      'git-push-origin-stable': { command: 'git push origin stable' },
-      'git-push-upstream-stable': { command: 'git push upstream stable' },
-      'git-push-origin-master': { command: 'git push origin master' },
-      'git-push-upstream-master': { command: 'git push upstream master' },
-      'git-push-upstream-tags': { command: 'git push upstream --tags' }
+      'git-push-stable': { command: 'git push origin stable' },
+      'git-push-master': { command: 'git push origin master' },
+      'git-push-tags': { command: 'git push --tags' }
     },
     prompt: {
       release: {
@@ -211,8 +209,10 @@ module.exports = function (grunt) {
         cmdLineOpts.push('-output');
         cmdLineOpts.push(f.dest);
       }
-
+      cmdLineOpts.push('-library-path+=libs/');
       cmdLineOpts.push('-define=CONFIG::version, "' + pkg.version + '"');
+      cmdLineOpts.push('-debug=false');
+      cmdLineOpts.push('-static-link-runtime-shared-libraries=true');
       cmdLineOpts.push('--');
       cmdLineOpts.push.apply(cmdLineOpts, srcList);
 
@@ -248,16 +248,16 @@ module.exports = function (grunt) {
   });
 
   /**
-   * How releases work:
-   *
+   * How releases work: 
+   * 
    * Changes come from pullrequests to master or stable.
    * They are tested then pulled into their base branch.
    * A change log item is added to "Unreleased".
-   * In a minor/major release, master is merged into stable
+   * In a minor/major release, master is merged into stable 
    *   (possibly by way of a release branch if testing more).
    *
    * Check out stable if not already checked out.
-   * Run `grunt release:RELEASE_TYPE`
+   * Run `grunt release:RELEASE_TYPE` 
    *   RELEASE_TYPE = major, minor, or patch
    *   Does the following:
    *     Bump version
@@ -285,14 +285,12 @@ module.exports = function (grunt) {
       'dist',                             // build distribution
       'shell:git-add-dist-force',         // force add the distribution
       'tagrelease',                       // commit & tag the changes
-      'shell:git-push-origin-stable',     // push changes to your fork
-      'shell:git-push-upstream-stable',   // push changes to upstream
-      'shell:git-push-upstream-tags',     // push version tag
+      'shell:git-push-stable',            // push changes to stable
+      'shell:git-push-tags',              // push version tag
       'npm-publish',                      // publish to npm
       'shell:git-checkout-master',        // switch to master branch
       'shell:git-merge-stable',           // merge stable into master
-      'shell:git-push-origin-master',      // push changes to your fork
-      'shell:git-push-upstream-master'    // push changes upstream
+      'shell:git-push-master'             // push changes to master
     ]);
   });
 

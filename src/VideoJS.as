@@ -1,5 +1,6 @@
 package{
-    
+    import com.videojs.utils.Console;
+
     import com.videojs.VideoJSApp;
     import com.videojs.events.VideoJSEvent;
     import com.videojs.structs.ExternalEventName;
@@ -20,6 +21,8 @@ package{
     import flash.utils.ByteArray;
     import flash.utils.Timer;
     import flash.utils.setTimeout;
+
+
     
     [SWF(backgroundColor="#000000", frameRate="60", width="480", height="270")]
     public class VideoJS extends Sprite{
@@ -56,11 +59,11 @@ package{
 
             // add content-menu version info
 
-            var _ctxVersion:ContextMenuItem = new ContextMenuItem("VideoJS Flash Component v" + VERSION, false, false);
-            var _ctxAbout:ContextMenuItem = new ContextMenuItem("Copyright © 2014 Brightcove, Inc.", false, false);
+            var _ctxVersion:ContextMenuItem = new ContextMenuItem("VideoJS Dacast Flash Component v" + VERSION, false, false);
+            //var _ctxAbout:ContextMenuItem = new ContextMenuItem("Copyright © 2014 Brightcove, Inc.", false, false);
             var _ctxMenu:ContextMenu = new ContextMenu();
             _ctxMenu.hideBuiltInItems();
-            _ctxMenu.customItems.push(_ctxVersion, _ctxAbout);
+            _ctxMenu.customItems.push(_ctxVersion);
             this.contextMenu = _ctxMenu;
 
         }
@@ -82,6 +85,9 @@ package{
                 ExternalInterface.addCallback("vjs_pause", onPauseCalled);
                 ExternalInterface.addCallback("vjs_resume", onResumeCalled);
                 ExternalInterface.addCallback("vjs_stop", onStopCalled);
+		ExternalInterface.addCallback("vjs_getLevels", onGetLevelsCalled);
+                ExternalInterface.addCallback("vjs_getCurrentLevel", onGetCurrentLevelCalled);
+                ExternalInterface.addCallback("vjs_setCurrentLevel", onSetCurrentLevelCalled);
             }
             catch(e:SecurityError){
                 if (loaderInfo.parameters.debug != undefined && loaderInfo.parameters.debug == "true") {
@@ -102,6 +108,9 @@ package{
         }
         
         private function finish():void{
+
+            // Pass the whole parameters to the model so that any provider may refer it.
+            _app.model.parameters = loaderInfo.parameters;
             
             if(loaderInfo.parameters.mode != undefined){
                 _app.model.mode = loaderInfo.parameters.mode;
@@ -126,22 +135,21 @@ package{
             if(loaderInfo.parameters.poster != undefined && loaderInfo.parameters.poster != ""){
                 _app.model.poster = String(loaderInfo.parameters.poster);
             }
-            
-            if(loaderInfo.parameters.src != undefined && loaderInfo.parameters.src != ""){
-              if (isExternalMSObjectURL(loaderInfo.parameters.src)) {
-                _app.model.srcFromFlashvars = null;
-                openExternalMSObject(loaderInfo.parameters.src);
-              } else {
-                _app.model.srcFromFlashvars = String(loaderInfo.parameters.src);
-              }
-            } else{
-              if(loaderInfo.parameters.rtmpConnection != undefined && loaderInfo.parameters.rtmpConnection != ""){
-                _app.model.rtmpConnectionURL = loaderInfo.parameters.rtmpConnection;
-              }
 
-              if(loaderInfo.parameters.rtmpStream != undefined && loaderInfo.parameters.rtmpStream != ""){
-                _app.model.rtmpStream = loaderInfo.parameters.rtmpStream;
-              }
+            if(loaderInfo.parameters.src != undefined && loaderInfo.parameters.src != ""){
+                if (isExternalMSObjectURL(loaderInfo.parameters.src)) {
+                    _app.model.srcFromFlashvars = null;
+                    openExternalMSObject(loaderInfo.parameters.src);
+                } else {
+                    _app.model.srcFromFlashvars = String(loaderInfo.parameters.src);
+                }
+            } else{
+                if(loaderInfo.parameters.rtmpConnection != undefined && loaderInfo.parameters.rtmpConnection != ""){
+                    _app.model.rtmpConnectionURL = loaderInfo.parameters.rtmpConnection;
+                }
+                if(loaderInfo.parameters.rtmpStream != undefined && loaderInfo.parameters.rtmpStream != ""){
+                    _app.model.rtmpStream = loaderInfo.parameters.rtmpStream;
+                }
             }
             
             if(loaderInfo.parameters.readyFunction != undefined){
@@ -200,6 +208,9 @@ package{
         
         private function onGetPropertyCalled(pPropertyName:String = ""):*{
 
+            if ( pPropertyName != 'currentTime' && pPropertyName != 'buffered' && pPropertyName != 'seeking'){
+            }
+            
             switch(pPropertyName){
                 case "mode":
                     return _app.model.mode;
@@ -282,6 +293,15 @@ package{
                 case "rtmpStream":
                     return _app.model.rtmpStream;
                     break;                                       
+                case "numberOfLevels":
+                    return _app.model.numberOfLevels;
+                    break;
+                case "level":
+                    return _app.model.level;
+                    break;
+                case "autoLevelEnabled":
+                    return _app.model.autoLevelEnabled;
+                    break;
             }
             return null;
         }
@@ -337,6 +357,9 @@ package{
                 case "rtmpStream":
                     _app.model.rtmpStream = String(pValue);
                     break;
+                case "level":
+                    _app.model.level = int(pValue);
+                    break;
                 default:
                     _app.model.broadcastErrorEventExternally(ExternalErrorEventName.PROPERTY_NOT_FOUND, pPropertyName);
                     break;
@@ -344,7 +367,7 @@ package{
         }
         
         private function onAutoplayCalled(pAutoplay:* = false):void{
-          _app.model.autoplay = _app.model.humanToBoolean(pAutoplay);
+            _app.model.autoplay = _app.model.humanToBoolean(pAutoplay);
         }
 
         private function isExternalMSObjectURL(pSrc:*):Boolean{
@@ -403,6 +426,17 @@ package{
         private function onStageClick(e:MouseEvent):void{
             _app.model.broadcastEventExternally(ExternalEventName.ON_STAGE_CLICK);
         }
-        
+
+        private function onGetLevelsCalled():String{
+	    return JSON.stringify(_app.model.levels);
+        }
+
+        private function onSetCurrentLevelCalled(pValue:int):void{
+	    _app.model.level = pValue;
+        }
+
+        private function onGetCurrentLevelCalled():int{
+            return _app.model.level;
+        }         
     }
 }

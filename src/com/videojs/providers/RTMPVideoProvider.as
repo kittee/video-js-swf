@@ -1,5 +1,7 @@
 package com.videojs.providers{
-    
+
+    import flash.display.Sprite;
+
     import com.videojs.VideoJSModel;
     import com.videojs.events.VideoPlaybackEvent;
     import com.videojs.structs.ExternalErrorEventName;
@@ -35,6 +37,7 @@ package com.videojs.providers{
         private var _videoReference:Video;
         
         private var _src:Object;
+        private var _streamName:String;
         private var _metadata:Object;
         private var _hasDuration:Boolean = false;
         private var _isPlaying:Boolean = false;
@@ -387,11 +390,36 @@ package com.videojs.providers{
             }
         }
                 
+        // This provider supports a stream with single level.
+        public function get numberOfLevels():int{
+            return 1;
+        }
+        public function get level():int{
+            return 0;
+        }
+        public function get levels():Array {
+            return null;
+        }
+
+        public function set level(pLevel:int):void
+        {
+            if (pLevel != 0)
+            {
+                throw "Wrong level.";
+            }
+        }
+        public function get autoLevelEnabled():Boolean
+        {
+            return false;
+        }
+
         private function initNetConnection():void{
             if(_nc == null){
                 _nc = new NetConnection();
                 _nc.client = this;
                 _nc.addEventListener(NetStatusEvent.NET_STATUS, onNetConnectionStatus);
+                _nc.addEventListener("onFCSubscribe", onFCSubscribe);
+                _nc.addEventListener("onFCUnsubscribe", onFCUnsubscribe);
             }
             
             // initiating an RTMP connection carries some overhead, so if we're already connected
@@ -408,8 +436,10 @@ package com.videojs.providers{
             else{
                 _nc.connect(_src.connectionURL);
             }
+
+            _nc.call("FCSubscribe", null, _src.streamURL);
         }
-        
+
         private function initNetStream():void{
             if(_ns != null){
                 _ns.removeEventListener(NetStatusEvent.NET_STATUS, onNetStreamStatus);
@@ -625,12 +655,16 @@ package com.videojs.providers{
         public function onBWDone(... pRest):void {        
             // no op for now but needed by NetConnection
         }
-        
+
         /**
          * Called from FMS when subscribing to live streams.
          */
         public function onFCSubscribe(pInfo:Object):void {
-            // no op for now but needed by NetConnection            
+            switch (pInfo.code){
+                case "NetStream.Play.StreamNotFound":
+                
+                    break;
+            }    
         }
         
         /**
@@ -644,6 +678,11 @@ package com.videojs.providers{
          * Called from FMS for NetStreams. Incorrectly used for NetConnections as well.
          * This is here to prevent runtime errors.
          */
-        public function streamInfo(pObj:Object):void {}        
+        public function streamInfo(pObj:Object):void {}
+
+        public function setCurrentLevel(quality : int) : void {}
+        public function getCurrentLevel() : int { return 0;}
+        public function getLevels() : Array { return null;}  
+        public function attachSprite(pSprite:Sprite):void {}
     }
 }

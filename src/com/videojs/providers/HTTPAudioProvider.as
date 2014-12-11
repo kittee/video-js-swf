@@ -3,6 +3,8 @@ package com.videojs.providers{
     import com.videojs.VideoJSModel;
     import com.videojs.structs.ExternalErrorEventName;
     import com.videojs.structs.ExternalEventName;
+
+    import flash.display.Sprite;
     
     import flash.events.Event;
     import flash.events.IOErrorEvent;
@@ -345,6 +347,8 @@ package com.videojs.providers{
         
         public function attachVideo(pVideo:Video):void{}
 
+        public function attachSprite(pSprite:Sprite):void {}
+
         public function die():void
         {
             if(_soundChannel)
@@ -368,6 +372,30 @@ package com.videojs.providers{
             }
         }
         
+        // This provider supports a stream with single level.
+        public function get numberOfLevels():int{
+            return 1;
+        }
+        public function get level():int{
+            return 0;
+        }
+
+	public function get levels():Array {
+            return null;
+	}
+
+        public function set level(pLevel:int):void
+        {
+            if (pLevel != 0)
+            {
+                throw "Wrong level.";
+            }
+        }
+        public function get autoLevelEnabled():Boolean
+        {
+            return false;
+        }
+
         private function doLoadCalculations():void{
             // if the load is finished
             if(_sound.bytesLoaded == _sound.bytesTotal){

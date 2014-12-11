@@ -14,6 +14,7 @@ package com.videojs.providers{
     import flash.utils.ByteArray;
     import flash.utils.Timer;
     import flash.utils.getTimer;
+    import flash.display.Sprite;
 
     public class HTTPVideoProvider extends EventDispatcher implements IProvider{
         
@@ -378,6 +379,8 @@ package com.videojs.providers{
             _videoReference = pVideo;
         }
 
+        public function attachSprite(pSprite:Sprite):void {}
+
         public function die():void{
             if(_videoReference)
             {
@@ -410,6 +413,29 @@ package com.videojs.providers{
             }
         }
         
+        // This provider supports a stream with single level.
+        public function get numberOfLevels():int{
+            return 1;
+        }
+        public function get level():int{
+            return 0;
+        }
+        public function get levels():Array {
+            return null;
+        }
+
+        public function set level(pLevel:int):void
+        {
+            if (pLevel != 0)
+            {
+                throw "Wrong level.";
+            }
+        }
+        public function get autoLevelEnabled():Boolean
+        {
+            return false;
+        }
+
         private function initNetConnection():void{
             // the video element triggers loadstart as soon as the resource selection algorithm selects a source
             // this is somewhat later than that moment but relatively close
@@ -455,32 +481,29 @@ package com.videojs.providers{
         }
         
         private function calculateThroughput():void{
-          // If there is no NetStream, the rest of the calculation is moot.
-          if(_ns){
-              // if it's finished loading, we can kill the calculations and assume it can play through
-              if(_ns.bytesLoaded == _ns.bytesTotal){
-                  _canPlayThrough = true;
-                  _loadCompleted = true;
-                  _throughputTimer.stop();
-                  _throughputTimer.reset();
-                  _model.broadcastEventExternally(ExternalEventName.ON_CAN_PLAY_THROUGH);
-              }
-              // if it's still loading, but we know its duration, we can check to see if the current transfer rate
-              // will sustain uninterrupted playback - this requires the duration to be known, which is currently
-              // only accessible via metadata, which isn't parsed until the Flash Player encounters the metadata atom
-              // in the file itself, which means that this logic will only work if the asset is playing - preload
-              // won't ever cause this logic to run :(
-              else if(_ns.bytesTotal > 0 && _metadata != null && _metadata.duration != undefined){
-                  _currentThroughput = _ns.bytesLoaded / ((getTimer() - _loadStartTimestamp) / 1000);
-                  var __estimatedTimeToLoad:Number = (_ns.bytesTotal - _ns.bytesLoaded) * _currentThroughput;
-                  if(__estimatedTimeToLoad <= _metadata.duration){
-                      _throughputTimer.stop();
-                      _throughputTimer.reset();
-                      _canPlayThrough = true;
-                      _model.broadcastEventExternally(ExternalEventName.ON_CAN_PLAY_THROUGH);
-                  }
-              }
-          }
+            // if it's finished loading, we can kill the calculations and assume it can play through
+            if(_ns.bytesLoaded == _ns.bytesTotal){
+                _canPlayThrough = true;
+                _loadCompleted = true;
+                _throughputTimer.stop();
+                _throughputTimer.reset();
+                _model.broadcastEventExternally(ExternalEventName.ON_CAN_PLAY_THROUGH);
+            }
+            // if it's still loading, but we know its duration, we can check to see if the current transfer rate
+            // will sustain uninterrupted playback - this requires the duration to be known, which is currently
+            // only accessible via metadata, which isn't parsed until the Flash Player encounters the metadata atom
+            // in the file itself, which means that this logic will only work if the asset is playing - preload
+            // won't ever cause this logic to run :(
+            else if(_ns.bytesTotal > 0 && _metadata != null && _metadata.duration != undefined){
+                _currentThroughput = _ns.bytesLoaded / ((getTimer() - _loadStartTimestamp) / 1000);
+                var __estimatedTimeToLoad:Number = (_ns.bytesTotal - _ns.bytesLoaded) * _currentThroughput;
+                if(__estimatedTimeToLoad <= _metadata.duration){
+                    _throughputTimer.stop();
+                    _throughputTimer.reset();
+                    _canPlayThrough = true;
+                    _model.broadcastEventExternally(ExternalEventName.ON_CAN_PLAY_THROUGH);
+                }
+            }
         }
         
         private function onNetConnectionStatus(e:NetStatusEvent):void{
@@ -507,7 +530,6 @@ package com.videojs.providers{
                     _loadStartTimestamp = getTimer();
                     _throughputTimer.reset();
                     _throughputTimer.start();
-
                     if(!_pauseOnStart || _model.autoplay){
                         _ns.resume();
                         _model.broadcastEventExternally(ExternalEventName.ON_RESUME);

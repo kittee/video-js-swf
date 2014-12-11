@@ -1,4 +1,5 @@
 package com.videojs{
+    import com.videojs.utils.Console;
 
     import com.videojs.events.VideoJSEvent;
     import com.videojs.events.VideoPlaybackEvent;
@@ -6,11 +7,14 @@ package com.videojs{
     import com.videojs.providers.HTTPVideoProvider;
     import com.videojs.providers.IProvider;
     import com.videojs.providers.RTMPVideoProvider;
+    import com.videojs.providers.HLSProvider;
+    import com.videojs.providers.HDSProvider;
     import com.videojs.structs.ExternalErrorEventName;
     import com.videojs.structs.ExternalEventName;
     import com.videojs.structs.PlaybackType;
     import com.videojs.structs.PlayerMode;
 
+    import flash.display.Sprite;
     import flash.events.Event;
     import flash.events.EventDispatcher;
     import flash.external.ExternalInterface;
@@ -20,11 +24,13 @@ package com.videojs{
     import flash.media.Video;
     import flash.utils.ByteArray;
 
+
     public class VideoJSModel extends EventDispatcher{
 
         private var _masterVolume:SoundTransform;
         private var _currentPlaybackType:String;
         private var _videoReference:Video;
+        private var _spriteReference:Sprite;
         private var _lastSetVolume:Number = 1;
         private var _provider:IProvider;
 
@@ -43,6 +49,7 @@ package com.videojs{
         private var _rtmpConnectionURL:String = "";
         private var _rtmpStream:String = "";
         private var _poster:String = "";
+        private var _parameters:Object;
 
         private static var _instance:VideoJSModel;
 
@@ -143,8 +150,17 @@ package com.videojs{
         public function get videoReference():Video{
             return _videoReference;
         }
+
+        public function get spriteReference():Sprite {
+            return _spriteReference;
+        }
+
         public function set videoReference(pVideo:Video):void {
             _videoReference = pVideo;
+        }
+
+        public function set spriteReference(pSprite:Sprite):void{
+            _spriteReference = pSprite;
         }
 
         public function get metadata():Object{
@@ -200,15 +216,17 @@ package com.videojs{
             _src = pValue;
             _rtmpConnectionURL = "";
             _rtmpStream = "";
-            _currentPlaybackType = PlaybackType.HTTP;
+            // detect HLS by checking the extension of src
+            if(_src.indexOf(".m3u8") != -1){
+                _currentPlaybackType = PlaybackType.HLS;
+            } else if(_src.indexOf(".f4m") != -1){
+                _currentPlaybackType = PlaybackType.HDS;
+            }
+            else{
+                _currentPlaybackType = PlaybackType.HTTP;
+            }
             broadcastEventExternally(ExternalEventName.ON_SRC_CHANGE, _src);
             initProvider();
-            if(_autoplay){
-                _provider.play();
-            }
-            else if(_preload){
-                _provider.load();
-            }
         }
 
         public function get rtmpConnectionURL():String{
@@ -252,7 +270,16 @@ package com.videojs{
          */
         public function set srcFromFlashvars(pValue:String):void {
             _src = pValue;
-            _currentPlaybackType = PlaybackType.HTTP
+            // detect HLS by checking the extension of src
+            if(_src.search(/(https?|file)\:\/\/.*?\.m3u8(\?.*)?/i) != -1){
+                _currentPlaybackType = PlaybackType.HLS;
+            } else if(_src.search(/(https?|file)\:\/\/.*?\.f4m(\?.*)?/i) != -1){
+                //not tested
+                _currentPlaybackType = PlaybackType.HDS;
+            }
+            else{
+                _currentPlaybackType = PlaybackType.HTTP;
+            }
             initProvider();
             if(_autoplay){
                 _provider.play();
@@ -270,7 +297,14 @@ package com.videojs{
             _poster = pValue;
             broadcastEvent(new VideoJSEvent(VideoJSEvent.POSTER_SET));
         }
-
+        
+        public function get parameters():Object{
+            return _parameters;
+        }
+        public function set parameters(pValue:Object):void{
+            _parameters = pValue;
+        }
+        
         public function get hasEnded():Boolean{
             if(_provider){
                 return _provider.ended;
@@ -527,6 +561,63 @@ package com.videojs{
             }
         }
 
+        /**
+         * Returns the number of stream levels that this content has.
+         */
+        public function get numberOfLevels():int
+        {
+            if(_provider){
+                return _provider.numberOfLevels;
+            }
+            return 1;
+        }
+
+        /**
+         * Returns the currently used stream level.
+         */
+        public function get level():int
+        {
+            if(_provider){
+                return _provider.level;
+            }
+            return -1;
+        }
+
+
+        /**
+         * Returns the currently used stream level.
+         */
+        public function get levels():Array
+        {
+            if(_provider){
+                return _provider.levels;
+            }
+	    return null;
+        }
+
+        /**
+         * Select the stream level.
+         * If -1 is specified, it means auto selection.
+         * If a level is specified (0-based index), that level is used and auto selection is disabled.
+         */
+        public function set level(pLevel:int):void
+        {
+            if(_provider){
+                _provider.level = pLevel;
+            }
+        }
+
+        /**
+          * Returns whether auto selection is currently enabled or not.
+          */
+        public function get autoLevelEnabled():Boolean
+        {
+            if(_provider){
+                return _provider.autoLevelEnabled;
+            }
+            return false;
+        }
+
         public function hexToNumber(pHex:String):Number{
             var __number:Number = 0;
             // clean it up
@@ -589,10 +680,11 @@ package com.videojs{
                 _provider = null;
             }
             var __src:Object;
+
             // We need to determine which provider to load, based on the values of our exposed properties.
+
             switch(_mode){
                 case PlayerMode.VIDEO:
-
                     if(_currentPlaybackType == PlaybackType.HTTP){
                         __src = {
                             path: _src
@@ -610,7 +702,25 @@ package com.videojs{
                         _provider.attachVideo(_videoReference);
                         _provider.init(__src, _autoplay);
                     }
+                    else if(_currentPlaybackType == PlaybackType.HLS){
+                        __src = {
+                            m3u8: _src,
+                            parameters: _parameters
+                        };
+                        _provider = new HLSProvider();
+                        _provider.attachVideo(_videoReference);
+                        _provider.init(__src, _autoplay);
+                    }
+                    else if(_currentPlaybackType == PlaybackType.HDS){
+                        __src = {
+                            f4m: _src,
+                            parameters: _parameters
+                        };
+                        _provider = new HDSProvider();
+                        _provider.attachSprite(_spriteReference);
+                        _provider.init(__src, _autoplay);
 
+                    }
                     break;
                 case PlayerMode.AUDIO:
                     __src = {
