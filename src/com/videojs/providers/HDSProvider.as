@@ -263,7 +263,7 @@ import org.osmf.utils.TimeUtil;
         }
 
         private function onDynamicStreamEvent(event:DynamicStreamEvent):void {
-            Console.log('onDynamicStreamEvent', event.toString());
+            //Console.log('onDynamicStreamEvent', event.toString());
             switch(event.type) {
                 case DynamicStreamEvent.NUM_DYNAMIC_STREAMS_CHANGE:
                     var resources:DynamicStreamingResource = (_mediaElement as F4MElement).proxiedElement.resource as DynamicStreamingResource;	
@@ -523,7 +523,7 @@ import org.osmf.utils.TimeUtil;
             if ( url.streamName.search(/@/) != -1 ) {
                 _isLive = true;
             }
-            Console.log("playing", _src.f4m);
+            //Console.log("playing", _src.f4m);
             _resource = new StreamingURLResource(_src.f4m ,streamType);
             _mediaElement = _mediaFactory.createMediaElement(_resource );
 
@@ -647,7 +647,7 @@ import org.osmf.utils.TimeUtil;
         }        
         
         private function level2label(i:DynamicStreamingItem):String {
-            Console.log("streamItem",i);
+            //Console.log("streamItem",i);
             if (i.height){
                 return i.height+"p";
             } else if ( i.bitrate ){

@@ -228,6 +228,9 @@ package com.videojs{
             Console.log('play', _currentPlaybackType);
             broadcastEventExternally(ExternalEventName.ON_SRC_CHANGE, _src);
             initProvider();
+            if(_autoplay){
+                play();
+            }
         }
 
         public function get rtmpConnectionURL():String{
