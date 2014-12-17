@@ -562,11 +562,13 @@ import org.osmf.utils.TimeUtil;
          * Called when the media asset should be paused.
          */
         public function pause():void {
-            Console.log('pause done', _mediaPlayer.canPause);
             if (_mediaPlayer.canPause){
                 _mediaPlayer.pause();
                 _model.broadcastEventExternally(ExternalEventName.ON_PAUSE);
-            } 
+            } else if (_mediaPlayer.playing) {
+                _mediaPlayer.stop();
+                _model.broadcastEventExternally(ExternalEventName.ON_PAUSE);
+            }
         }
 
         /**
