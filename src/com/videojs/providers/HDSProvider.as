@@ -186,6 +186,7 @@ import org.osmf.utils.TimeUtil;
                     _networkState = NetworkState.NETWORK_LOADING;
                     _readyState = ReadyState.HAVE_ENOUGH_DATA;
                     _model.broadcastEventExternally(ExternalEventName.ON_CAN_PLAY);
+                    _model.broadcastEventExternally(ExternalEventName.ON_SEEK_COMPLETE);
                     _model.broadcastEventExternally(ExternalEventName.ON_START);
                     _model.broadcastEventExternally(ExternalEventName.ON_RESUME);
                     break;
@@ -229,11 +230,11 @@ import org.osmf.utils.TimeUtil;
                     _model.broadcastEvent(new VideoPlaybackEvent(VideoPlaybackEvent.ON_STREAM_CLOSE, {}));
                     _model.broadcastEventExternally(ExternalEventName.ON_PAUSE);
                     _model.broadcastEventExternally(ExternalEventName.ON_PLAYBACK_COMPLETE);
-                break;
+                    break;
 
               case TimeEvent.DURATION_CHANGE:
-                  _model.broadcastEventExternally(ExternalEventName.ON_DURATION_CHANGE);
-                break;
+                    _model.broadcastEventExternally(ExternalEventName.ON_DURATION_CHANGE);
+                    break;
             }
         }
 
@@ -283,7 +284,6 @@ import org.osmf.utils.TimeUtil;
             //Console.log('onMediaErrorEvent', event.error.name, event.error.detail, event.error.errorID, event.error.message);
             _networkState = NetworkState.NETWORK_NO_SOURCE;
             _readyState = ReadyState.HAVE_NOTHING; 
-            _model.broadcastEventExternally(ExternalEventName.ON_BUFFER_FULL);
             _model.broadcastErrorEventExternally(ExternalErrorEventName.SRC_404);     
         }
 
