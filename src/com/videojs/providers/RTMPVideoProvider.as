@@ -495,7 +495,7 @@ package com.videojs.providers{
         }
         
         private function onNetConnectionStatus(e:NetStatusEvent):void{
-            Console.log('onNetConnectionStatus', e.info);            
+            //Console.log('onNetConnectionStatus', e.info);            
             switch(e.info.code){
                 case "NetConnection.Connect.Success":
                     _model.broadcastEventExternally(ExternalEventName.ON_RTMP_CONNECT_SUCCESS);
@@ -521,7 +521,7 @@ package com.videojs.providers{
         }
         
         private function onNetStreamStatus(e:NetStatusEvent):void{
-            Console.log('onNetStreamStatus', e.info);
+            //Console.log('onNetStreamStatus', e.info);
             switch(e.info.code){
                 case "NetStream.Play.Reset":
                     break;
