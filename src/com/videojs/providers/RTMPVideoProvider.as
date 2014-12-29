@@ -7,6 +7,8 @@ package com.videojs.providers{
     import com.videojs.structs.ExternalErrorEventName;
     import com.videojs.structs.ExternalEventName;
     import com.videojs.structs.PlaybackType;
+    import com.videojs.utils.Console;
+
     
     import flash.events.EventDispatcher;
     import flash.events.NetStatusEvent;
@@ -27,6 +29,7 @@ package com.videojs.providers{
         private var _ncRTMPRetryThreshold:int = 3;
         private var _ncRTMPCurrentRetry:int = 0;
         private var _throughputTimer:Timer;
+        private var _bufferEmptyTimer:Timer;
         private var _currentThroughput:int = 0; // in B/sec
         private var _loadStartTimestamp:int;
         private var _loadStarted:Boolean = false;
@@ -60,6 +63,8 @@ package com.videojs.providers{
             _rtmpRetryTimer.addEventListener(TimerEvent.TIMER, onRTMPRetryTimerTick);
             _throughputTimer = new Timer(250, 0);
             _throughputTimer.addEventListener(TimerEvent.TIMER, onThroughputTimerTick);
+            _bufferEmptyTimer = new Timer(5000, 1);
+            _bufferEmptyTimer.addEventListener(TimerEvent.TIMER, onBufferEmptyTick);
         }
 
         public function get loop():Boolean{
@@ -290,6 +295,7 @@ package com.videojs.providers{
                 _isPaused = false;
                 _model.broadcastEventExternally(ExternalEventName.ON_RESUME);
             }
+
         }
         
         public function seekBySeconds(pTime:Number):void{
@@ -336,6 +342,9 @@ package com.videojs.providers{
                 _model.broadcastEvent(new VideoPlaybackEvent(VideoPlaybackEvent.ON_STREAM_CLOSE, {}));
                 _throughputTimer.stop();
                 _throughputTimer.reset();
+                if (_bufferEmptyTimer.running) {
+                    _bufferEmptyTimer.stop();
+                } 
             }
         }
         
@@ -449,7 +458,7 @@ package com.videojs.providers{
             _ns.addEventListener(NetStatusEvent.NET_STATUS, onNetStreamStatus);
             _ns.client = this;
             _ns.bufferTime = 1;
-            _ns.play(_src.streamURL);
+            _ns.play(_src.streamURL); 
             _videoReference.attachNetStream(_ns);
             _model.broadcastEventExternally(ExternalEventName.ON_LOAD_START);
             _model.broadcastEvent(new VideoPlaybackEvent(VideoPlaybackEvent.ON_STREAM_READY, {ns:_ns}));
@@ -486,6 +495,7 @@ package com.videojs.providers{
         }
         
         private function onNetConnectionStatus(e:NetStatusEvent):void{
+            Console.log('onNetConnectionStatus', e.info);            
             switch(e.info.code){
                 case "NetConnection.Connect.Success":
                     _model.broadcastEventExternally(ExternalEventName.ON_RTMP_CONNECT_SUCCESS);
@@ -500,7 +510,6 @@ package com.videojs.providers{
                     }
                     break;
                 default:
-                    
                     if(e.info.level == "error"){
                         _model.broadcastErrorEventExternally(e.info.code);
                         _model.broadcastErrorEventExternally(e.info.description);
@@ -512,6 +521,7 @@ package com.videojs.providers{
         }
         
         private function onNetStreamStatus(e:NetStatusEvent):void{
+            Console.log('onNetStreamStatus', e.info);
             switch(e.info.code){
                 case "NetStream.Play.Reset":
                     break;
@@ -549,6 +559,9 @@ package com.videojs.providers{
                         _ns.pause();
                         _isPaused = true;
                     }
+                    if ( _bufferEmptyTimer.running) {
+                        _bufferEmptyTimer.stop();
+                    }
                     break;
                 
                 case "NetStream.Buffer.Empty":
@@ -584,7 +597,7 @@ package com.videojs.providers{
                     _isSeeking = false;
                     _model.broadcastEvent(new VideoPlaybackEvent(VideoPlaybackEvent.ON_STREAM_SEEK_COMPLETE, {info:e.info}));
                     _model.broadcastEventExternally(ExternalEventName.ON_SEEK_COMPLETE);
-                    _model.broadcastEventExternally(ExternalEventName.ON_BUFFER_EMPTY);
+                    _model.broadcastEventExternally(²ExternalEventName.ON_BUFFER_EMPTY);
                     _currentThroughput = 0;
                     _loadStartTimestamp = getTimer();
                     _throughputTimer.reset();
@@ -596,7 +609,17 @@ package com.videojs.providers{
                     _loadErrored = true;
                     _model.broadcastErrorEventExternally(ExternalErrorEventName.SRC_404);
                     break;
-                
+
+                case "NetStream.Pause.Notify":
+                    if ( _bufferEmptyTimer.running) {
+                        _bufferEmptyTimer.stop();
+                    }
+                    break;        
+        
+                case "NetStream.Unpause.Notify":
+                    _bufferEmptyTimer.reset();
+                    _bufferEmptyTimer.start();
+                    break;
                 default:
                     if(e.info.level == "error"){
                         _model.broadcastErrorEventExternally(e.info.code);
@@ -608,6 +631,11 @@ package com.videojs.providers{
             _model.broadcastEvent(new VideoPlaybackEvent(VideoPlaybackEvent.ON_NETSTREAM_STATUS, {info:e.info}));
         }
         
+        private function onBufferEmptyTick(e:TimerEvent):void{
+            _model.broadcastErrorEventExternally(ExternalErrorEventName.SRC_404);
+            _bufferEmptyTimer.stop();
+        }
+
         private function onThroughputTimerTick(e:TimerEvent):void{
             calculateThroughput();
         }
@@ -660,6 +688,7 @@ package com.videojs.providers{
          * Called from FMS when subscribing to live streams.
          */
         public function onFCSubscribe(pInfo:Object):void {
+            //Console.log('onFCSubscribe', pInfo);            
             switch (pInfo.code){
                 case "NetStream.Play.StreamNotFound":
                 
