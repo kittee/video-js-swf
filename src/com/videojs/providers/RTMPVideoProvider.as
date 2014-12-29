@@ -597,7 +597,7 @@ package com.videojs.providers{
                     _isSeeking = false;
                     _model.broadcastEvent(new VideoPlaybackEvent(VideoPlaybackEvent.ON_STREAM_SEEK_COMPLETE, {info:e.info}));
                     _model.broadcastEventExternally(ExternalEventName.ON_SEEK_COMPLETE);
-                    _model.broadcastEventExternally(²ExternalEventName.ON_BUFFER_EMPTY);
+                    _model.broadcastEventExternally(ExternalEventName.ON_BUFFER_EMPTY);
                     _currentThroughput = 0;
                     _loadStartTimestamp = getTimer();
                     _throughputTimer.reset();
