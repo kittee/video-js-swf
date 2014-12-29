@@ -237,8 +237,8 @@ import org.osmf.utils.TimeUtil;
                     _model.broadcastEventExternally(ExternalEventName.ON_PAUSE);
                     _model.broadcastEventExternally(ExternalEventName.ON_PLAYBACK_COMPLETE);
                     seekBySeconds(0);
+                    pause();
                     break;
-
               case TimeEvent.DURATION_CHANGE:
                     _model.broadcastEventExternally(ExternalEventName.ON_DURATION_CHANGE);
                     break;
