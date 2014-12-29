@@ -173,7 +173,10 @@ import org.osmf.utils.TimeUtil;
                     if ( !_mediaPlayer.buffering) {
                         _model.broadcastEventExternally(ExternalEventName.ON_BUFFER_FULL);
                     } else {
-                        _model.broadcastEventExternally(ExternalEventName.ON_BUFFER_EMPTY);
+                        // check end of content and send event only if it is not the end.
+                        if (_mediaPlayer.currentTime - _mediaPlayer.duration > 1) {
+                            _model.broadcastEventExternally(ExternalEventName.ON_BUFFER_EMPTY);
+                        }
                     }
                     break;
             }
