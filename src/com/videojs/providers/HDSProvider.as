@@ -172,10 +172,13 @@ import org.osmf.utils.TimeUtil;
                 case BufferEvent.BUFFERING_CHANGE:
                     if ( !_mediaPlayer.buffering) {
                         _model.broadcastEventExternally(ExternalEventName.ON_BUFFER_FULL);
-                    } else {
+                    } else if (_mediaPlayer.playing){
                         // check end of content and send event only if it is not the end.
                         if (_mediaPlayer.currentTime - _mediaPlayer.duration > 1) {
                             _model.broadcastEventExternally(ExternalEventName.ON_BUFFER_EMPTY);
+                        } else {
+                            seekBySeconds(0);
+                            pause();
                         }
                     }
                     break;
@@ -183,7 +186,7 @@ import org.osmf.utils.TimeUtil;
         }
 
         private function onMediaPlayerStateChangeEvent(event:MediaPlayerStateChangeEvent):void {
-            //Console.log('onMediaPlayerStateChangeEvent', event.toString());
+            //Console.log('onMediaPlayerStateChangeEvent', event.type);
             switch (event.state) {
                 case MediaPlayerState.PLAYING:
                     _networkState = NetworkState.NETWORK_LOADING;
@@ -233,6 +236,7 @@ import org.osmf.utils.TimeUtil;
                     _model.broadcastEvent(new VideoPlaybackEvent(VideoPlaybackEvent.ON_STREAM_CLOSE, {}));
                     _model.broadcastEventExternally(ExternalEventName.ON_PAUSE);
                     _model.broadcastEventExternally(ExternalEventName.ON_PLAYBACK_COMPLETE);
+                    seekBySeconds(0);
                     break;
 
               case TimeEvent.DURATION_CHANGE:
