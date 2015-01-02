@@ -174,11 +174,10 @@ import org.osmf.utils.TimeUtil;
                         _model.broadcastEventExternally(ExternalEventName.ON_BUFFER_FULL);
                     } else if (_mediaPlayer.playing){
                         // check end of content and send event only if it is not the end.
-                        if (_mediaPlayer.currentTime - _mediaPlayer.duration > 1) {
+                        if ( _mediaPlayer.currentTime < _mediaPlayer.duration && _mediaPlayer.currentTime - _mediaPlayer.duration > 1) {
                             _model.broadcastEventExternally(ExternalEventName.ON_BUFFER_EMPTY);
                         } else {
-                            seekBySeconds(0);
-                            pause();
+                            _model.broadcastEventExternally(ExternalEventName.ON_PLAYBACK_COMPLETE);
                         }
                     }
                     break;
@@ -186,7 +185,7 @@ import org.osmf.utils.TimeUtil;
         }
 
         private function onMediaPlayerStateChangeEvent(event:MediaPlayerStateChangeEvent):void {
-            //Console.log('onMediaPlayerStateChangeEvent', event.type);
+            //Console.log('onMediaPlayerStateChangeEvent', event.state, event.toString());
             switch (event.state) {
                 case MediaPlayerState.PLAYING:
                     _networkState = NetworkState.NETWORK_LOADING;
@@ -230,14 +229,12 @@ import org.osmf.utils.TimeUtil;
         }
 
         private function onTimeEvent(event:TimeEvent):void {
+            //Console.log('onTimeEvent', event.toString());
             switch(event.type) {
               case TimeEvent.COMPLETE:
-                    pause();
                     _model.broadcastEvent(new VideoPlaybackEvent(VideoPlaybackEvent.ON_STREAM_CLOSE, {}));
                     _model.broadcastEventExternally(ExternalEventName.ON_PAUSE);
                     _model.broadcastEventExternally(ExternalEventName.ON_PLAYBACK_COMPLETE);
-                    seekBySeconds(0);
-                    pause();
                     break;
               case TimeEvent.DURATION_CHANGE:
                     _model.broadcastEventExternally(ExternalEventName.ON_DURATION_CHANGE);
