@@ -35,6 +35,7 @@ package com.videojs{
             _model = VideoJSModel.getInstance();
             _model.addEventListener(VideoJSEvent.POSTER_SET, onPosterSet);
             _model.addEventListener(VideoJSEvent.BACKGROUND_COLOR_SET, onBackgroundColorSet);
+            _model.addEventListener(VideoJSEvent.STAGE_RESIZE, onStageResize);
             _model.addEventListener(VideoPlaybackEvent.ON_STREAM_START, onStreamStart);
             _model.addEventListener(VideoPlaybackEvent.ON_META_DATA, onMetaData);
             _model.addEventListener(VideoPlaybackEvent.ON_VIDEO_DIMENSION_UPDATE, onDimensionUpdate);
@@ -185,6 +186,16 @@ package com.videojs{
             _uiBackground.graphics.beginFill(_model.backgroundColor, 1);
             _uiBackground.graphics.drawRect(0, 0, _model.stageRect.width, _model.stageRect.height);
             _uiBackground.graphics.endFill();
+        }
+        
+        private function onStageResize(e:VideoJSEvent):void{
+            
+            _uiBackground.graphics.clear();
+            _uiBackground.graphics.beginFill(_model.backgroundColor, 1);
+            _uiBackground.graphics.drawRect(0, 0, _model.stageRect.width, _model.stageRect.height);
+            _uiBackground.graphics.endFill();
+            sizePoster();
+            sizeVideoObject();
         }
         
         private function onPosterSet(e:VideoJSEvent):void{
