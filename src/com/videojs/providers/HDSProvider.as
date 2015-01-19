@@ -217,6 +217,13 @@ import org.osmf.utils.TimeUtil;
 
         private function onMediaPlayerCapabilityChangeEvent(event:MediaPlayerCapabilityChangeEvent):void {
             //Console.log('onMediaPlayerCapabilityChangeEvent', event.toString());
+            switch (event.type) {
+                case MediaPlayerCapabilityChangeEvent.IS_DYNAMIC_STREAM_CHANGE:
+                    if (event.enabled) {
+                        //Console.log('onMediaPlayerCapabilityChangeEvent', "Current streaming profile index: " + _mediaPlayer.currentDynamicStreamIndex + " of " + _mediaPlayer.maxAllowedDynamicStreamIndex);
+                        _mediaPlayer.addEventListener(DynamicStreamEvent.SWITCHING_CHANGE, onSwitchingChange);
+                    }
+            }
         }
 
         private function onSeekEvent(event:SeekEvent):void {
@@ -342,6 +349,28 @@ import org.osmf.utils.TimeUtil;
                     break;
             }
         }
+
+        private function onSwitchingChange(event:DynamicStreamEvent):void  {
+            var msg:String = "change "
+            var showCurrentIndex:Boolean = false;
+
+            if (event.switching){
+                msg += "REQUESTED";
+            } else {
+                msg += "COMPLETE";
+                showCurrentIndex = true;
+            }
+
+            //Console.log('onSwitchingChange',msg);
+
+            if (showCurrentIndex) {
+                var streamMsg:String = "Current streaming profile index: " + _mediaPlayer.currentDynamicStreamIndex + " of " + _mediaPlayer.maxAllowedDynamicStreamIndex;
+                //Console.log('onSwitchingChange', streamMsg);
+                streamMsg = "Current bitrate = " + _mediaPlayer.getBitrateForDynamicStreamIndex(_mediaPlayer.currentDynamicStreamIndex) + "kbps";
+                //Console.log('onSwitchingChange', streamMsg);
+            }
+        }
+
 
         public function get loop():Boolean{
             return _mediaPlayer.loop;
