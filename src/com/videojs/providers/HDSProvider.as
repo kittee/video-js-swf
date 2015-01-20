@@ -538,17 +538,7 @@ import org.osmf.utils.TimeUtil;
         /**
          * Called when the media asset should be preloaded, but not played.
          */
-        public function load():void {
-            if (_resource){
-                if (_resource.url != _src.f4m){
-                    _load();
-                }
-            } else {
-                _load();
-            }
-        }
-
-        private function _load():void{
+        public function load():void{
             var streamType:String = StreamType.LIVE_OR_RECORDED;
             _isLive = false;
 
@@ -556,7 +546,7 @@ import org.osmf.utils.TimeUtil;
             if ( url.streamName.search(/@/) != -1 ) {
                 _isLive = true;
             }
-            //Console.log("playing", _src.f4m);
+            //Console.log("loading", _src.f4m);
             _resource = new StreamingURLResource(_src.f4m ,streamType);
             _mediaElement = _mediaFactory.createMediaElement(_resource );
 

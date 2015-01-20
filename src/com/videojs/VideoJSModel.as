@@ -228,6 +228,11 @@ package com.videojs{
             Console.log('play', _currentPlaybackType);
             broadcastEventExternally(ExternalEventName.ON_SRC_CHANGE, _src);
             initProvider();
+
+            // force preload for hds
+            if(_preload){
+                _provider.load();
+            }
             if(_autoplay){
                 play();
             }
@@ -285,11 +290,11 @@ package com.videojs{
                 _currentPlaybackType = PlaybackType.HTTP;
             }
             initProvider();
+            if(_preload){
+                _provider.load();
+            }
             if(_autoplay){
                 _provider.play();
-            }
-            else if(_preload){
-                _provider.load();
             }
         }
 
