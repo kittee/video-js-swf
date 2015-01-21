@@ -225,17 +225,15 @@ package com.videojs{
             else{
                 _currentPlaybackType = PlaybackType.HTTP;
             }
-            Console.log('play', _currentPlaybackType);
+            //Console.log(' src play', _currentPlaybackType);
             broadcastEventExternally(ExternalEventName.ON_SRC_CHANGE, _src);
             initProvider();
 
-            // force preload for hds
-            if(_preload){
-                _provider.load();
-            }
+            //Console.log('autoplay', _autoplay, 'preload',_preload);
+
             if(_autoplay){
                 play();
-            }
+            } 
         }
 
         public function get rtmpConnectionURL():String{
@@ -264,7 +262,7 @@ package com.videojs{
                 _currentPlaybackType = PlaybackType.RTMP;
                 initProvider();
             }
-
+            Console.log('rtmpstream play', _currentPlaybackType);
             if(_autoplay){
                 play();
             }
@@ -289,12 +287,11 @@ package com.videojs{
             else{
                 _currentPlaybackType = PlaybackType.HTTP;
             }
+            Console.log('srcFromFlashVars play', _currentPlaybackType);
             initProvider();
-            if(_preload){
-                _provider.load();
-            }
+
             if(_autoplay){
-                _provider.play();
+                play();
             }
         }
 
