@@ -230,7 +230,9 @@ package com.videojs{
             initProvider();
 
             //Console.log('autoplay', _autoplay, 'preload',_preload);
-
+            if(_preload){
+                load();
+            } 
             if(_autoplay){
                 play();
             } 

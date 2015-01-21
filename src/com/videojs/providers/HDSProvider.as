@@ -539,6 +539,13 @@ import org.osmf.utils.TimeUtil;
          * Called when the media asset should be preloaded, but not played.
          */
         public function load():void{
+            if (_resource){
+                if (_resource.url == _src.f4m){
+                    Console.log('ressource already loaded');
+                    return;
+                }
+            }
+
             var streamType:String = StreamType.LIVE_OR_RECORDED;
             _isLive = false;
 
