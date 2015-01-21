@@ -229,8 +229,10 @@ import org.osmf.utils.TimeUtil;
         private function onSeekEvent(event:SeekEvent):void {
             //Console.log('onSeekEvent', event.toString());
             if(event.seeking) {
+                //Console.log('onSeekEvent', ExternalEventName.ON_SEEK_START);
                 _model.broadcastEventExternally(ExternalEventName.ON_SEEK_START);
             } else {
+                //Console.log('onSeekEvent', ExternalEventName.ON_SEEK_COMPLETE);
                 _model.broadcastEventExternally(ExternalEventName.ON_SEEK_COMPLETE);
             }
         }
@@ -615,8 +617,11 @@ import org.osmf.utils.TimeUtil;
          * Called when the media asset needs to seek to a new time point.
          */
         public function seekBySeconds(pTime:Number):void {
-            if (_mediaPlayer.canSeek){
+            if (!_mediaPlayer.seeking){
+                //Console.log('can seek', _mediaPlayer.canSeek, 'seeking',_mediaPlayer.seeking, 'seek to', pTime);
                 _mediaPlayer.seek(pTime);
+            } else {
+                //Console.log('can seek', _mediaPlayer.canSeek, 'seeking',_mediaPlayer.seeking);
             }
         }
 
@@ -624,7 +629,7 @@ import org.osmf.utils.TimeUtil;
          * Called when the media asset needs to seek to a percentage of its total duration.
          */
         public function seekByPercent(pPercent:Number):void {
-            if (_mediaPlayer.canSeek){
+            if (!_mediaPlayer.seeking){
                 _mediaPlayer.seek(pPercent*_mediaPlayer.duration);
             }
         }
