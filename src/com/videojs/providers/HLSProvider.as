@@ -83,6 +83,7 @@ package com.videojs.providers{
         private function _errorHandler(event:HLSEvent):void {
           Log.debug("error!!!!:"+ event.error.msg);
           _model.broadcastErrorEventExternally(ExternalErrorEventName.SRC_404);
+          _model.broadcastEventExternally(ExternalEventName.ON_SEEK_COMPLETE);
           _networkState = NetworkState.NETWORK_NO_SOURCE;
           _readyState = ReadyState.HAVE_NOTHING;
           stop();
@@ -141,6 +142,7 @@ package com.videojs.providers{
                 _readyState = ReadyState.HAVE_ENOUGH_DATA;
                 _model.broadcastEventExternally(ExternalEventName.ON_BUFFER_FULL);
                 _model.broadcastEventExternally(ExternalEventName.ON_CAN_PLAY);
+                _model.broadcastEventExternally(ExternalEventName.ON_SEEK_COMPLETE);
                 _model.broadcastEvent(new VideoPlaybackEvent(VideoPlaybackEvent.ON_STREAM_START, {info:{}}));
                 break;
               case HLSPlayStates.PAUSED:

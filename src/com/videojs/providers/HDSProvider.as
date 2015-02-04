@@ -93,7 +93,6 @@ import org.osmf.utils.TimeUtil;
         //private static const AKAMAI_PLUGIN_INFO:String= 'http://players.edgesuite.net/flash/plugins/osmf/advanced-streaming-plugin/v3.4/osmf2.0/AkamaiAdvancedStreamingPlugin.swf';
         //private static const forceRefAkamai:AkamaiAdvancedStreamingPluginInfo = null;			
 
-
         private var _sprite:Sprite;
 
         public function HDSProvider() {
@@ -101,15 +100,15 @@ import org.osmf.utils.TimeUtil;
             _levelSelected = -1;
             _playRequested = false;
             _metadata = {};
-
-            // thanks to @seniorflexdeveloper to provide a complete osmf event listening system. I just copied all events he used in his project videojs-osmf
             _mediaFactory = new DefaultMediaFactory();
-            _mediaFactory.addEventListener(MediaFactoryEvent.MEDIA_ELEMENT_CREATE, onMediaFactoryEvent);
             //loadPlugin(AKAMAI_PLUGIN_INFO);
             initPlayer();
         }
 
         private function initPlayer(){
+            // thanks to @seniorflexdeveloper to provide a complete osmf event listening system. I just copied all events he used in his project videojs-osmf
+            _mediaFactory.addEventListener(MediaFactoryEvent.MEDIA_ELEMENT_CREATE, onMediaFactoryEvent);
+
             _mediaPlayer = new MediaPlayer();
             _mediaPlayer.autoRewind = false;
             _mediaPlayer.loop = false;
