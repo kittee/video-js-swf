@@ -8,10 +8,13 @@ import flash.display.StageScaleMode;
 import flash.media.Video;
 import flash.events.Event;
 import flash.utils.ByteArray;
+import flash.utils.getDefinitionByName;
 
 import flash.net.NetConnection;
 import flash.net.NetGroup;
 import flash.net.NetStream;
+
+//import com.akamai.osmf.AkamaiAdvancedStreamingPluginInfo;
 
 import com.videojs.VideoJSModel;
 import com.videojs.events.VideoPlaybackEvent;
@@ -64,6 +67,8 @@ import org.osmf.traits.LoadTrait;
 import org.osmf.utils.TimeUtil;
 
 
+
+
   public class HDSProvider implements IProvider {
         
         private var _networkState:Number = NetworkState.NETWORK_EMPTY;
@@ -82,20 +87,29 @@ import org.osmf.utils.TimeUtil;
         private var _resource:URLResource;
         private var _mediaElement:MediaElement;
         private var _layoutMetadata:LayoutMetadata;
+        private var _playRequested:Boolean;
+
+        //private static const AKAMAI_PLUGIN_INFO:String = "com.akamai.osmf.AkamaiAdvancedStreamingPluginInfo";
+        //private static const AKAMAI_PLUGIN_INFO:String= 'http://players.edgesuite.net/flash/plugins/osmf/advanced-streaming-plugin/v3.4/osmf2.0/AkamaiAdvancedStreamingPlugin.swf';
+        //private static const forceRefAkamai:AkamaiAdvancedStreamingPluginInfo = null;			
+
 
         private var _sprite:Sprite;
 
         public function HDSProvider() {
             _model = VideoJSModel.getInstance();
             _levelSelected = -1;
+            _playRequested = false;
             _metadata = {};
 
             // thanks to @seniorflexdeveloper to provide a complete osmf event listening system. I just copied all events he used in his project videojs-osmf
             _mediaFactory = new DefaultMediaFactory();
             _mediaFactory.addEventListener(MediaFactoryEvent.MEDIA_ELEMENT_CREATE, onMediaFactoryEvent);
-            _mediaFactory.addEventListener(MediaFactoryEvent.PLUGIN_LOAD, onMediaFactoryEvent);
-            _mediaFactory.addEventListener(MediaFactoryEvent.PLUGIN_LOAD_ERROR, onMediaFactoryEvent);
+            //loadPlugin(AKAMAI_PLUGIN_INFO);
+            initPlayer();
+        }
 
+        private function initPlayer(){
             _mediaPlayer = new MediaPlayer();
             _mediaPlayer.autoRewind = false;
             _mediaPlayer.loop = false;
@@ -152,8 +166,50 @@ import org.osmf.utils.TimeUtil;
             }
         }
 
+        private function loadPlugin(source:String):void
+        {
+            var pluginResource:MediaResourceBase;
+            if (source.substr(0, 4) == "http" || source.substr(0, 4) == "file") {
+                // This is a URL, create a URLResource
+                pluginResource = new URLResource(source);
+            } else {
+                // Assume this is a class
+                var pluginInfoRef:Class = flash.utils.getDefinitionByName(source) as Class;
+                pluginResource = new PluginInfoResource(new pluginInfoRef);
+            }
+
+            loadPluginFromResource(pluginResource);
+        }
+
+        private function loadPluginFromResource(pluginResource:MediaResourceBase):void
+        {
+            setupMediaFactoryListeners();
+            _mediaFactory.loadPlugin(pluginResource);
+
+            function setupMediaFactoryListeners(add:Boolean=true):void {
+                if (add) {
+                    _mediaFactory.addEventListener(MediaFactoryEvent.PLUGIN_LOAD, onPluginLoaded);
+                    _mediaFactory.addEventListener(MediaFactoryEvent.PLUGIN_LOAD_ERROR, onPluginLoadFailed);
+                } else {
+                    _mediaFactory.removeEventListener(MediaFactoryEvent.PLUGIN_LOAD, onPluginLoaded);
+                    _mediaFactory.removeEventListener(MediaFactoryEvent.PLUGIN_LOAD_ERROR, onPluginLoadFailed);
+                }
+            }
+
+            function onPluginLoaded(event:MediaFactoryEvent):void {
+                Console.log("Plugin LOAD SUCCESS!");
+                setupMediaFactoryListeners(false);
+                initPlayer();
+            }
+
+            function onPluginLoadFailed(event:MediaFactoryEvent):void {
+                Console.log("Plugin LOAD FAILED!");
+                setupMediaFactoryListeners(false);
+            }
+        }
+
         private function onMediaFactoryEvent(event:MediaFactoryEvent):void {
-            //Console.log('onMediaFactoryEvent', event.toString());
+            //Console.log('onMediaFactoryEvent', event.toString(), event.type);
         }
 
         private function onAudioEvent(event:AudioEvent):void {
@@ -258,10 +314,15 @@ import org.osmf.utils.TimeUtil;
         private function onPlayEvent(event:PlayEvent):void {
             //Console.log('onPlayEvent', event.toString());
             switch(event.type) {
-              case PlayEvent.PLAY_STATE_CHANGE:
-                  //_model.broadcastEventExternally(ExternalEventName.ON_START);
-                  _model.broadcastEvent(new VideoPlaybackEvent(VideoPlaybackEvent.ON_STREAM_START, {info:{}}));
-                  break;
+                case PlayEvent.PLAY_STATE_CHANGE:
+                    _model.broadcastEvent(new VideoPlaybackEvent(VideoPlaybackEvent.ON_STREAM_START, {info:{}}));
+                    break;
+                case PlayEvent.CAN_PAUSE_CHANGE:
+                    if (_playRequested) {
+                        _playRequested = false;
+                        play();
+                    }
+                    break;
             }
         }
 
@@ -574,7 +635,6 @@ import org.osmf.utils.TimeUtil;
                 _mediaContainer.height = _sprite.stage.stageHeight;
                 _sprite.addChild(_mediaContainer);            
                 _model.broadcastEventExternally(ExternalEventName.ON_LOAD_START);
-
             } else {
                 Console.log("ERROR CREATING MEDIA");
             }
@@ -587,6 +647,8 @@ import org.osmf.utils.TimeUtil;
             if (_mediaPlayer.canPlay){
                 _mediaPlayer.play();
                 _model.broadcastEventExternally(ExternalEventName.ON_RESUME);
+            } else {
+                _playRequested = true;
             }
         }
 

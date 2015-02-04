@@ -514,6 +514,8 @@ package com.videojs{
         public function play():void {
             if(_provider){
                 _provider.play();
+            } else {
+                _autoplay = true;
             }
         }
 
