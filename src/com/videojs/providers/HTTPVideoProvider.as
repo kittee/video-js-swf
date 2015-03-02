@@ -262,7 +262,6 @@ package com.videojs.providers{
         public function load():void{
             _pauseOnStart = true;
             _isPlaying = false;
-            _isPaused = true;
             initNetConnection();
         }
         
@@ -271,7 +270,6 @@ package com.videojs.providers{
             if(!_loadStarted){
                 _pauseOnStart = false;
                 _isPlaying = false;
-                _isPaused = false;
                 _metadata = {};
                 initNetConnection();
             }
@@ -283,7 +281,6 @@ package com.videojs.providers{
                 }
                 _pausePending = false;
                 _ns.resume();
-                _isPaused = false;
                 _model.broadcastEventExternally(ExternalEventName.ON_RESUME);
                 if (!_isBuffering) {
                     _model.broadcastEventExternally(ExternalEventName.ON_START);
@@ -296,21 +293,16 @@ package com.videojs.providers{
             _ns.pause();
 
             if(_isPlaying && !_isPaused){
-                _isPaused = true;
                 _model.broadcastEventExternally(ExternalEventName.ON_PAUSE);
                 if(_isBuffering){
                     _pausePending = true;
                 }
-            } else if (_hasEnded) {
-              _hasEnded = false;
-              _ns.seek(0);
             }
         }
         
         public function resume():void{
             if(_isPlaying && _isPaused){
                 _ns.resume();
-                _isPaused = false;
                 _model.broadcastEventExternally(ExternalEventName.ON_RESUME);
                 if (!_isBuffering) {
                     _model.broadcastEventExternally(ExternalEventName.ON_START);
@@ -439,8 +431,10 @@ package com.videojs.providers{
         private function initNetConnection():void{
             // the video element triggers loadstart as soon as the resource selection algorithm selects a source
             // this is somewhat later than that moment but relatively close
+            if (!_loadStarted) {
+                _model.broadcastEventExternally(ExternalEventName.ON_LOAD_START);
+            }
             _loadStarted = true;
-            _model.broadcastEventExternally(ExternalEventName.ON_LOAD_START);
 
             if(_nc != null) {
                 try {
@@ -520,6 +514,12 @@ package com.videojs.providers{
         
         private function onNetStreamStatus(e:NetStatusEvent):void{
             switch(e.info.code){
+                case "NetStream.Pause.Notify":
+                    _isPaused = true;
+                    break;
+                case "NetStream.Unpause.Notify":
+                    _isPaused = false;
+                    break;
                 case "NetStream.Play.Start":
                     _pausedSeekValue = -1;
                     _metadata = null;
@@ -545,7 +545,6 @@ package com.videojs.providers{
                     break;
                 
                 case "NetStream.Buffer.Full":
-                    _model.broadcastEventExternally(ExternalEventName.ON_CAN_PLAY);
                     _pausedSeekValue = -1;
                     _isPlaying = true;
                     if(_pausePending){
@@ -585,7 +584,6 @@ package com.videojs.providers{
                 case "NetStream.Play.Stop":
                     if(!_loop){
                         _isPlaying = false;
-                        _isPaused = true;
                         _hasEnded = true;
                         _model.broadcastEvent(new VideoPlaybackEvent(VideoPlaybackEvent.ON_STREAM_CLOSE, {info:e.info}));
                         _model.broadcastEventExternally(ExternalEventName.ON_PAUSE);
@@ -649,6 +647,7 @@ package com.videojs.providers{
             }
             _model.broadcastEvent(new VideoPlaybackEvent(VideoPlaybackEvent.ON_META_DATA, {metadata:_metadata}));
             _model.broadcastEventExternally(ExternalEventName.ON_METADATA, _metadata);
+            _model.broadcastEventExternally(ExternalEventName.ON_CAN_PLAY);
 
             _model.broadcastEventExternally(ExternalEventName.ON_BUFFER_FULL);
             _onmetadadataFired = true;
